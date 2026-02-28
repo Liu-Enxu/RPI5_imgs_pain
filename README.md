@@ -1,5 +1,5 @@
 # RPI5_imgs_pain
-PAIN...
+PAIN... installing non-official supported operating systems
 
 ## Arch
 Mostly from this: https://kiljan.org/2023/11/24/arch-linux-arm-on-a-raspberry-pi-5-model-b/
