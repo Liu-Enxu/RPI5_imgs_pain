@@ -1,0 +1,172 @@
+https://wiki.archlinux.org/title/Installation_guide
+https://kiljan.org/2023/11/24/arch-linux-arm-on-a-raspberry-pi-5-model-b/
+*boot change to 512MB
+-----------------------------------
+ls /usr/share/kbd/consolefonts/
+setfont <nameBeforeAny".">
+echo "setfont name" >> ~/.bashrc
+
+//pacman -S networkmanager
+//systemctl enable NetworkManager //disable systemd-networkd after installing networkmanager //nmtui
+ip link
+ping archlinux.org
+
+su -
+root
+
+pacman -Syy
+// reflector --save /etc/pacman.d/mirrorlist
+// pacman -S archlinux-keyring
+//pacstrap -K /mnt base  base-devel nano networkmanager man-db
+
+pacman-key --init
+pacman-key --populate archlinuxarm
+pacman -R linux-aarch64 uboot-raspberrypi
+pacman -Syu --overwrite "/boot/*" linux-rpi (clean up kernel)
+reboot
+-----------------------------------
+root:su -
+timedatectl set-ntp true
+ln -sf /usr/share/zoneinfo/America/New_york /etc/localtime
+
+cd /etc
+nano locale.gen and uncomment utf-8
+locale-gen
+/etc/locale.conf:
+	LANG=en_US.UTF-8
+
+pacman -S noto-fonts-cjk
+
+pacman -S fcitx5 fcitx5-configtool fcitx5-chinese-addons
+
+OPTIONAL, NOT NEEDED IN THE FIRST TRIAL:Add these before i3 starts (in ~/.xprofile or ~/.xinitrc):
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
+
+Add this at the end of ~/.config/i3/config:
+exec --no-startup-id fcitx5
+
+fcitx5-configtool to add the Pinyin
+
+pacman -Syu
+-----------------------------------
+root:pacman -S sudo
+
+
+EDITOR=nano visudo (uncomment wheel related)
+usermod -aG wheel username
+
+# Create user with home directory
+useradd -m username
+# Add user to wheel group
+usermod -aG wheel username
+# Set password
+passwd username
+
+reboot
+
+sudo pacman -S --needed git base-devel man-db tealdeer
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+
+-----------------------------------
+https://wiki.archlinux.org/title/Xinit
+https://wiki.archlinux.org/title/Xorg
+sudo pacman -S xorg-server xorg-init
+
+xorg no screens found raspberry pi "fbdev":
+https://www.google.com/search?q=xorg+no+screens+found+raspberry+pi+%22fbdev%22&sca_esv=e2ac7e5363cb24f5&ei=xktXaJm3I_3-p84PwurakAc&ved=0ahUKEwiZsvu_4IOOAxV9_8kDHUK1FnIQ4dUDCBA&uact=5&oq=xorg+no+screens+found+raspberry+pi+%22fbdev%22&gs_lp=Egxnd3Mtd2l6LXNlcnAiKnhvcmcgbm8gc2NyZWVucyBmb3VuZCByYXNwYmVycnkgcGkgImZiZGV2IjIFECEYoAEyBRAhGKABMgUQIRigATIFECEYoAEyBRAhGKABMgUQIRirAkjggwFQl1ZY_4EBcAF4AZABAJgB5QGgAb4uqgEHMjUuMjkuMbgBA8gBAPgBAZgCDaACkAzCAgoQABiwAxjWBBhHwgIGEAAYFhgewgILEAAYgAQYhgMYigXCAggQABiABBiiBMICBRAAGO8FmAMAiAYBkAYIkgcEMS4xMqAHwq8BsgcEMC4xMrgHiwzCBwcwLjcuMy4zyAc1&sclient=gws-wiz-serp
+-->
+https://www.reddit.com/r/voidlinux/comments/qbyl7r/rpi4_xorg_woes_no_screens_found/
+sudo pacman -S xf86-video-fbdev
+
+do this!!!!!!!!!!!!!
+https://dietpi.com/forum/t/raspberry-pi-5-xorg-issues-chromium-autostart-cannot-run-in-framebuffer-mode/19963/8
+A bit of searching led me to this post which had the solution…Create 99-vc4.conf in /etc/X11/xorg.conf.d/ with the following content:
+Section "OutputClass"
+  Identifier "vc4"
+  MatchDriver "vc4"
+  Driver "modesetting"
+  Option "PrimaryGPU" "true"
+EndSection
+reboot
+
+i3
+nano ~/.xinitrc 
+#!/bin/sh
+exec i3
+
+(startx)
+
+lightdm： sudo systemctl enable lightdm-service.service
+
+----------------------------------
+
+(AFTER I3) 
+kitty (need to restart), 
+picom (compositor, transparent kitty), 
+fish(zsh, set as default),
+rofi (need current locale; set theme in i3config),
+yazi(file sys),tree
+nitrogen,
+neofetch/fastfetch ()
+web-greeter(https://github.com/JezerM/web-greeter) https://github.com/TheWisker/Shikai
+
+
+OS: ArchLinuxArm-rpi
+Window manager: i3
+Compositor: picom
+Menus/launchers: Rofi
+Terminal: Kitty
+Shell: fish
+Display manager: lightdm
+Greeter: web-greeter
+Wallpaper: nitrogen
+File system: yazi
+
+
+
+----------------------------------
+in ~/.config/i3/config
+
+bindsym $mod+d exec --no-startup-id rofi -show drun
+...
+{ status_command i3blocks}
+
+exec --no-startup-id nitrogen --restore
+exec_always --no-startup-id picom
+
+sudo systemctl enable lightdm-service.service (make sure to install greeter first!!!)
+
+https://asciiart.club/ -- neofetch
+
+yay -S librewolf-bin
+
+btop 
+
+cbonsai
+----------------------------------
+fastfetch: ascii art
+fish: config.fish fastfetch
+kitty: copy default kitty, kitty.conf,set background_opcaity = 0.5
+i3blocks: 
+rofi:
+yazi:
+nitrogen: select bg
+web-greeter: theme
+
+https://archlinux.org/news/linux-firmware-2025061312fe085f-5-upgrade-requires-manual-intervention/
+
+
+screen:
+just download xorg-server xorg-xinit
+https://raspberrypi.stackexchange.com/questions/60872/inverted-gpio-touchscreen-using-99-calibration-conf
+dtoverlay=waveshare35a:rotate=270,swapxy=1
+https://wiki.ubuntu.com/X/InputCoordinateTransformation (transformation matrix)
+
+godot4.4-stable:
+scons platform=linuxbsd arch=arm64 target=editor -j$(nproc)
+
+network:
