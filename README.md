@@ -7,7 +7,7 @@ Mostly from this: https://kiljan.org/2023/11/24/arch-linux-arm-on-a-raspberry-pi
 Follow [this](ARCH_INSTALL.txt)
 
 ## Debian (native)
-### Rough instructions
+### rough instructions
 
 https://www.youtube.com/watch?v=SuGiuAw1kg8
 
