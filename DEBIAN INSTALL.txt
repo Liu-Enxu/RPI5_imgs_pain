@@ -1,0 +1,57 @@
+https://www.pigstye.net/systemadministration/nextcloud/ not needed for edi-pi
+------------------------------------
+install edi-pi img
+sudo apt update
+
+sudo parted /dev/mmcblk0
+print
+rm 4
+resizepart 3 100%
+quit
+sudo resize2fs /dev/mmcblk0p3
+
+// format nvme
+sudo umount /dev/nvme0n1* // unmount any
+rm n
+mklabel gpt
+mkpart primary ext4 0% 100%
+quit
+sudo mkfs.ext4 /dev/nvme0n1p1
+//mnt
+sudo mkdir -p /mnt/nvme
+sudo mount /dev/nvme0n1p1 /mnt/nvme1
+//automnt
+blkid /dev/nvme0n1p1
+"/dev/nvme0n1p1: UUID="abcd-1234" TYPE="ext4" LABEL="nextcloud_data""
+sudo nano /etc/fstab
+>>UUID=abcd-1234  /mnt/nvme  ext4  defaults,nofail  0 2
+-------------------------------
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+"To authenticate, visit..."
+sudo apt install iputils-ping
+-----------------------------
+install docker
+
+sudo usermod -aG docker $USER
+sudo mkdir /mnt/.../nextcloud
+sudo mkdir /mnt/.../nextcloud/proxy
+sudo nano /mnt/.../nextcloud/proxy/Dockerfile
+
+-----------------------------
+https://github.com/nextcloud/all-in-one/discussions/6817#user-content-fn-1-a24742ea0d328bac01c61c953745b7fa
+
+For issues related to port 443 not being reachable, try modifying the docker compose file as suggested by @faustus1005 in their comment:
+
+Uncomment the explicit ports
+Set the APACHE_IP_BINDING to 0.0.0.0
+Set SKIP_DOMAIN_VALIDATION=true, note that this is a last resort solution.
+ports:
+  # - 80:80
+  # - 8443:8443
+   APACHE_IP_BINDING: 0.0.0.0
+   SKIP_DOMAIN_VALIDATION: true
+
+tailscale serve reset
+tailscale serve --bg http://127.0.0.1:11000
+if access server.tailnetname.ts.net fails after setup and img installations
